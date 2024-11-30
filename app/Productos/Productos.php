@@ -9,7 +9,7 @@ interface VendibleInterface {
 }
 
 // Clase Producto
-abstract class Producto implements VendibleInterface {
+abstract class Producto  implements VendibleInterface {
     public const IVA = 0.21; // 21%
     protected string $id;
     protected string $nombre;

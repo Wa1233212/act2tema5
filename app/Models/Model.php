@@ -4,30 +4,22 @@ namespace App\Models;
 
 use PDO;
 use PDOException;
-use Exception;
-
-/**
- * Gestiona la conexión a la base de datos e incluye un esquema para
- * un Query Builder. Los return son ejemplo en caso de consultar la tabla
- * usuarios.
- */
 
 class Model
 {
     protected $db_host = 'localhost';
-    protected $db_user = 'root'; // Las credenciales se deben guardar en un archivo .env
+    protected $db_user = 'root'; // Debe gestionarse con un archivo .env
     protected $db_pass = '';
     protected $db_name = 'tienda_database';
 
     protected $connection;
 
-    protected $query; // Consulta a ejecutar
-
+    protected $query; // Última consulta ejecutada
     protected $select = '*';
     protected $where, $values = [];
     protected $orderBy;
 
-    protected $table; // Definido en la clase hija
+    protected $table; // Debe definirse en las clases hijas
 
     public function __construct()
     {
