@@ -16,7 +16,7 @@ class Model
     protected $db_host = 'localhost';
     protected $db_user = 'root'; // Las credenciales se deben guardar en un archivo .env
     protected $db_pass = '';
-    protected $db_name = 'mvc_database';
+    protected $db_name = 'tienda_database';
 
     protected $connection;
 

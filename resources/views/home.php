@@ -41,7 +41,7 @@
                   ->get();
 
       //Consulta
-      $usuarioModel->create(['id' => 1, 'nombre' => 'nombre1', 'apellidos' => 'apellidos1']);
+      $usuarioModel->create(['nombre' => 'nombre1', 'apellidos' => 'apellidos1']);
 
       //Consulta
      $usuarioModel->delete(['id' => 1]);
