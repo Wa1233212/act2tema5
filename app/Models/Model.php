@@ -2,8 +2,11 @@
 
 namespace App\Models;
 
+use PDO;
+use PDOException;
+
 /**
- * Gestiona la conexión de la base de datos e incluye un esquema para
+ * Gestiona la conexión a la base de datos e incluye un esquema para
  * un Query Builder. Los return son ejemplo en caso de consultar la tabla
  * usuarios.
  */
@@ -23,78 +26,86 @@ class Model
     protected $where, $values = [];
     protected $orderBy;
 
-    protected $table; // Definido en la clase hijo
+    protected $table; // Definido en la clase hija
 
-    public function __construct()  // Se puede modificar según montéis la conexión
+    public function __construct()
     {
         $this->connection();
     }
 
     public function connection()
     {
-        // Conexión a la base de datos, por hacer
+        try {
+            $dsn = "mysql:host={$this->db_host};dbname={$this->db_name};charset=utf8";
+            $this->connection = new PDO($dsn, $this->db_user, $this->db_pass);
+            $this->connection->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_EXCEPTION);
+        } catch (PDOException $e) {
+            die("Conexión fallida: " . $e->getMessage());
+        }
     }
 
     // QUERY BUILDER
-    // Consultas: 
 
-    // Recibe la cadena de consulta y la ejecuta
     public function query($sql, $data = [], $params = null)
     {
-
-        echo "Consulta: {$sql} <br>"; // borrar, solo para ver ejemplo
+        echo "Consulta: {$sql} <br>"; // solo para pruebas
         echo "Data: ";
         var_dump($data);
         echo "Params: ";
         var_dump($params);
         echo "<br>";
 
-        // Si hay $data se lanzará una consulta preparada, en otro caso una normal
-        // Está configurado para mysqli, cambiar para usar PDO
+        $stmt = $this->connection->prepare($sql);
         if ($data) {
-            if ($params == null) {
-                // s para string. sssd para 3 strings y un entero. https://www.php.net/manual/es/mysqli-stmt.bind-param.php
-                // por ejemplo: $stmt->bind_param('sssd', $code, $language, $official, $percent);
-                $params = str_repeat('s', count($data));
-            }
-            // Sentencia preparada, pasando array como parámetros
-            // Cambiar a PDO
-            $smtp = $this->connection->prepare($sql);
-            $smtp->bind_param($params, ...$data); // con ... el array cambia a variables
-            $smtp->execute();
-
-            $this->query = $smtp->get_result();
-        } else {
-            $this->query = $this->connection->query($sql);
+            $this->bindParams($stmt, $data, $params);
         }
 
+        $stmt->execute();
+        $this->query = $stmt;
+
         return $this;
+    }
+
+    protected function bindParams($stmt, $data, $params)
+    {
+        if ($params == null) {
+            // Default parameter type binding (string)
+            $params = str_repeat('s', count($data));
+        }
+
+        $paramTypes = str_split($params);
+        foreach ($data as $index => $value) {
+            $stmt->bindValue($index + 1, $value, $this->getParamType($paramTypes[$index]));
+        }
+    }
+
+    protected function getParamType($type)
+    {
+        switch ($type) {
+            case 'i': return PDO::PARAM_INT;
+            case 'd': return PDO::PARAM_STR;
+            case 's': return PDO::PARAM_STR;
+            default: return PDO::PARAM_STR;
+        }
     }
 
     public function select(...$columns)
     {
-        // Separamos el array en una cadena con ,
-        $this->select = implode(', ', $columns);
-
+        $this->select = empty($columns) ? '*' : implode(', ', $columns);
         return $this;
     }
 
-    // Devuelve todos los registros de una tabla
     public function all()
     {
-        // La consulta sería
-        $sql = "SELECT * FROM {$this->table}";
-        // Y se llama a la sentencia
-        $this->query($sql)->get();
+        $sql = "SELECT {$this->select} FROM {$this->table}";
+        return $this->query($sql)->get();
     }
 
-    // Consulta base a la que se irán añadiendo partes
     public function get()
     {
         if (empty($this->query)) {
             $sql = "SELECT {$this->select} FROM {$this->table}";
 
-            // Se comprueban si están definidos para añadirlos a la cadena $sql
             if ($this->where) {
                 $sql .= " WHERE {$this->where}";
             }
@@ -105,95 +116,72 @@ class Model
 
             $this->query($sql, $this->values);
         }
+
+        return $this->query->fetchAll(PDO::FETCH_ASSOC);
     }
 
     public function find($id)
     {
         $sql = "SELECT * FROM {$this->table} WHERE id = ?";
-
-        $this->query($sql, [$id], 'i');
+        return $this->query($sql, [$id], 'i')->get();
     }
 
-    // Se añade where a la sentencia con operador específico
     public function where($column, $operator, $value = null, $chainType = 'AND')
     {
-        if ($value == null) { // Si no se pasa operador, por defecto =
+        if ($value === null) {
             $value = $operator;
             $operator = '=';
         }
 
-        // Si ya había algo de antes 
-        if ($this->where) {
-            $this->where .= " {$chainType} {$column} {$operator} ?";
-        } else {
-            $this->where = "{$column} {$operator} ?";
-        }
-
+        $this->where = $this->where ? "{$this->where} {$chainType} {$column} {$operator} ?" : "{$column} {$operator} ?";
         $this->values[] = $value;
 
         return $this;
     }
 
-    // Se añade orderBy a la sentencia
     public function orderBy($column, $order = 'ASC')
     {
-        if ($this->orderBy) {
-            $this->orderBy .= ", {$column} {$order}";
-        } else {
-            $this->orderBy = "{$column} {$order}";
-        }
-
+        $this->orderBy = $this->orderBy ? "{$this->orderBy}, {$column} {$order}" : "{$column} {$order}";
         return $this;
     }
 
-    // Insertar, recibimos un $_GET o $_POST
     public function create($data)
     {
-        $columns = array_keys($data); // array de claves del array
-        $columns = implode(', ', $columns); // y creamos una cadena separada por ,
+        $columns = array_keys($data);
+        $columnsList = implode(', ', $columns);
+        $placeholders = implode(', ', array_fill(0, count($data), '?'));
 
-        $values = array_values($data); // array de los valores
-
-        $sql = "INSERT INTO {$this->table} ({$columns}) VALUES (?" . str_repeat(',?', count($values) - 1) . ")";
-
-        $this->query($sql, $values, $values);
+        $sql = "INSERT INTO {$this->table} ({$columnsList}) VALUES ({$placeholders})";
+        $this->query($sql, array_values($data));
 
         return $this;
     }
 
     public function update($id, $data)
     {
-        $fields = [];
+        $fields = array_map(fn($key) => "{$key} = ?", array_keys($data));
+        $fieldsList = implode(', ', $fields);
 
-        foreach ($data as $key => $value) {
-            $fields[] = "{$key} = ?";
-        }
+        $sql = "UPDATE {$this->table} SET {$fieldsList} WHERE id = ?";
+        $this->query($sql, array_merge(array_values($data), [$id]));
 
-        $fields = implode(', ', $fields);
-
-        $sql = "UPDATE {$this->table} SET {$fields} WHERE id = ?";
-
-        $values = array_values($data);
-        $values[] = $id;
-
-        $this->query($sql, $values);
         return $this;
     }
 
     public function delete($id)
     {
         $sql = "DELETE FROM {$this->table} WHERE id = ?";
-
         $this->query($sql, [$id], 'i');
+
+        return $this;
     }
 
-    // Para pruebas, devuelve como si fuese unan consulta, borrar
     public function consultaPrueba()
     {
         return [
             ['id' => 1, 'nombre' => 'Nombre1', 'apellido' => 'Apellido1'],
-            ['id' => 1, 'nombre' => 'Nombre2', 'apellido' => 'Apellido2'],
-            ['id' => 1, 'nombre' => 'Nombre3', 'apellido' => 'Apellido3']
+            ['id' => 2, 'nombre' => 'Nombre2', 'apellido' => 'Apellido2'],
+            ['id' => 3, 'nombre' => 'Nombre3', 'apellido' => 'Apellido3']
         ];
     }
 }
