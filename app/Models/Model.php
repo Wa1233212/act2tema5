@@ -4,6 +4,7 @@ namespace App\Models;
 
 use PDO;
 use PDOException;
+use Exception;
 
 /**
  * Gestiona la conexión a la base de datos e incluye un esquema para
@@ -68,12 +69,30 @@ class Model
 
     protected function bindParams($stmt, $data, $params)
     {
-        if ($params == null) {
-            // Default parameter type binding (string)
-            $params = str_repeat('s', count($data));
+        // Si no se pasan tipos de parámetros, genera los tipos según los valores en $data
+        if ($params === null) {
+            $params = '';
+            foreach ($data as $value) {
+                if (is_int($value)) {
+                    $params .= 'i'; // Integer
+                } elseif (is_bool($value)) {
+                    $params .= 'b'; // Boolean
+                } elseif (is_null($value)) {
+                    $params .= 'n'; // Null
+                } else {
+                    $params .= 's'; // String
+                }
+            }
         }
-
+    
+        // Asegúrate de que los tipos de parámetro sean correctos
         $paramTypes = str_split($params);
+    
+        // Verifica que la cantidad de tipos y valores coincidan
+        if (count($paramTypes) !== count($data)) {
+            throw new Exception("La cantidad de parámetros no coincide con la cantidad de valores.");
+        }
+    
         foreach ($data as $index => $value) {
             $stmt->bindValue($index + 1, $value, $this->getParamType($paramTypes[$index]));
         }
@@ -159,14 +178,27 @@ class Model
 
     public function update($id, $data)
     {
+        // Preparar las columnas a actualizar
         $fields = array_map(fn($key) => "{$key} = ?", array_keys($data));
         $fieldsList = implode(', ', $fields);
-
+    
+        // Crear la consulta SQL
         $sql = "UPDATE {$this->table} SET {$fieldsList} WHERE id = ?";
-        $this->query($sql, array_merge(array_values($data), [$id]));
-
+    
+        // Combinar los valores de los datos y el ID, asegurando que el ID va al final
+        $params = array_merge(array_values($data), [$id]);
+    
+        // Imprimir los valores de los parámetros antes de la consulta para depurar
+        echo "Params before query: ";
+        var_dump($params); // Verificar que los valores sean correctos
+        echo "SQL: " . $sql . "<br>";
+    
+        // Ejecutar la consulta con los parámetros correctamente ordenados
+        $this->query($sql, $params);
+    
         return $this;
     }
+    
 
     public function delete($id)
     {

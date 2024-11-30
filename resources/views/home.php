@@ -41,10 +41,10 @@
                   ->get();
 
       //Consulta
-      $usuarioModel->create(['nombre' => 'nombre1', 'apellidos' => 'apellidos1']);
+      //$usuarioModel->create(['nombre' => 'nombre1', 'apellidos' => 'apellidos1']);
 
       //Consulta
-     $usuarioModel->delete(['id' => 1]);
+      $usuarioModel->delete(['id' => 1]);
 
       //Consulta
       $usuarioModel->update(['id' => 1], ['nombre' => 'NombreCambiado']);
