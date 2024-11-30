@@ -26,6 +26,11 @@ abstract class Producto implements VendibleInterface {
     public function calcularPrecioConIVA(): float {
         return $this->precio * (1 + self::IVA);
     }
+
+    // Nuevo método para obtener el ID
+    public function getId(): string {
+        return $this->id;
+    }
 }
 
 // Clase Ropa
@@ -69,5 +74,48 @@ class Comida extends Producto {
         echo "Comida: {$this->nombre}, Precio: {$this->precio}, Caducidad: " . $this->caducidad->format('Y-m-d') . PHP_EOL;
     }
 }
+
+// Trait Descuento
+trait Descuento {
+    public function aplicarDescuento(float $porcentaje): void {
+        $this->precio -= $this->precio * ($porcentaje / 100);
+    }
+}
+
+// Clase Carrito
+class Carrito {
+    use Descuento;
+
+    private array $productos = [];
+
+    public function agregarProducto(Producto $producto): void {
+        $this->productos[$producto->getId()] = $producto;
+    }
+
+    public function eliminarProducto(string $id): void {
+        unset($this->productos[$id]);
+    }
+
+    public function calcularTotal(): float {
+        $total = 0;
+        foreach ($this->productos as $producto) {
+            $total += $producto->calcularPrecioConIVA();
+        }
+        return $total;
+    }
+
+    public function vaciarCarrito(): void {
+        $this->productos = [];
+    }
+
+    public function mostrarCarrito(): void {
+        foreach ($this->productos as $producto) {
+            $producto->mostrarDescripcion();
+        }
+        echo "Total con IVA: " . $this->calcularTotal() . PHP_EOL;
+    }
+}
+
+
 
 ?>
