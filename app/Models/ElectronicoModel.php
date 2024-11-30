@@ -4,7 +4,7 @@ namespace App\Models;
 
 class ElectronicoModel extends ProductoModel
 {
-    protected $table = 'electronicos';
+    protected $table = 'electronico';
 
     public function mostrarDescripcion(int $id): string
     {

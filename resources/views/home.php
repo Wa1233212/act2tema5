@@ -11,45 +11,30 @@
 <body>
     <p class="header-paragraph">Pruebas de consultas (hacer scroll):</p>
     <?php
-     use App\Models\UsuarioModel;  //Recuerda el uso del autoload.php
-     
-      //Se instancia el modelo
-     $usuarioModel = new UsuarioModel();
+        use App\Models\RopaModel;
+        use App\Models\ElectronicoModel;
+        use App\Models\ComidaModel;
 
-      //Descomentar consultas para ver la creación. Cuando se lanza execute hay código para
-      //mostrar la consulta SQL que se está ejecutando.
-     
-      //Consulta 
-      $usuarioModel->all();
+        $ropaModel = new RopaModel();
+        $electronicoModel = new ElectronicoModel();
+        $comidaModel = new ComidaModel();
 
-      //Consulta
-      $usuarioModel->select('columna1', 'columna2')->get();
+        // Mostrar descripción de un producto de cada tipo
+        echo $ropaModel->mostrarDescripcion(1);
+        echo $electronicoModel->mostrarDescripcion(2);
+        echo $comidaModel->mostrarDescripcion(3);
 
-      //Consulta
-      $usuarioModel->select('columna1', 'columna2')
-                  ->where('columna1', '>', '3')
-                  ->orderBy('columna1', 'DESC')
-                  ->get();
+        // Buscar ropa por talla
+        $ropaPorTalla = $ropaModel->buscarPorTalla('M');
+        var_dump($ropaPorTalla);
 
-      //Consulta
-      $usuarioModel->select('columna1', 'columna2')
-                  ->where('columna1', '>', '3')
-                  ->where('columna2', 'columna3')
-                  ->where('columna2', 'columna3')
-                  ->where('columna3', '!=', 'columna4', 'OR')
-                  ->orderBy('columna1', 'DESC')
-                  ->get();
+        // Buscar electrónicos por modelo
+        $electronicosPorModelo = $electronicoModel->buscarPorModelo('Galaxy S21');
+        var_dump($electronicosPorModelo);
 
-      //Consulta
-      //$usuarioModel->create(['nombre' => 'nombre1', 'apellidos' => 'apellidos1']);
-
-      //Consulta
-      $usuarioModel->delete(1);
-
-      //Consulta
-      $usuarioModel->update(1, ['nombre' => 'NombreCambiado']);
-
-     echo "Pruebas SQL Query Builder";
+        // Buscar comida por fecha de caducidad
+        $comidaCaducidad = $comidaModel->buscarPorFechaCaducidad('2024-12-01');
+        var_dump($comidaCaducidad);
     ?>
 </body>
 
