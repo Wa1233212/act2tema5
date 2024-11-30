@@ -23,7 +23,7 @@
       $usuarioModel->all();
 
       //Consulta
-     $usuarioModel->select('columna1', 'columna2')->get();
+      $usuarioModel->select('columna1', 'columna2')->get();
 
       //Consulta
       $usuarioModel->select('columna1', 'columna2')
@@ -44,10 +44,10 @@
       //$usuarioModel->create(['nombre' => 'nombre1', 'apellidos' => 'apellidos1']);
 
       //Consulta
-      $usuarioModel->delete(['id' => 1]);
+      $usuarioModel->delete(1);
 
       //Consulta
-      $usuarioModel->update(['id' => 1], ['nombre' => 'NombreCambiado']);
+      $usuarioModel->update(1, ['nombre' => 'NombreCambiado']);
 
      echo "Pruebas SQL Query Builder";
     ?>

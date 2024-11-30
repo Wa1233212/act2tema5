@@ -69,7 +69,7 @@ class Model
 
     protected function bindParams($stmt, $data, $params)
     {
-        // Si no se pasan tipos de parámetros, genera los tipos según los valores en $data
+        // Si no se pasan tipos, generamos los tipos según los valores en $data
         if ($params === null) {
             $params = '';
             foreach ($data as $value) {
@@ -85,18 +85,24 @@ class Model
             }
         }
     
-        // Asegúrate de que los tipos de parámetro sean correctos
+        // Crear un array con los tipos de parámetros
         $paramTypes = str_split($params);
     
-        // Verifica que la cantidad de tipos y valores coincidan
+        // Verificar que la cantidad de tipos coincida con la cantidad de datos
         if (count($paramTypes) !== count($data)) {
-            throw new Exception("La cantidad de parámetros no coincide con la cantidad de valores.");
+            die("Error: La cantidad de parámetros no coincide con la cantidad de valores.");
         }
     
+        // Vincular los valores a la consulta, asegurándonos de que no haya arrays
         foreach ($data as $index => $value) {
+            // Verificar que el valor no sea un array
+            if (is_array($value)) {
+                die("Error: No se puede pasar un array como valor de parámetro.");
+            }
             $stmt->bindValue($index + 1, $value, $this->getParamType($paramTypes[$index]));
         }
     }
+    
 
     protected function getParamType($type)
     {
