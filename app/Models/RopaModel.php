@@ -30,4 +30,10 @@ class RopaModel extends Model
 
         return $this->query($sql, [$talla], 's')->fetchAll();
     }
+        // Método para obtener todos los productos de ropa
+        public function getProductos()
+        {
+            $sql = "SELECT p.id, p.nombre, p.precio FROM {$this->table} r INNER JOIN Producto p ON r.id = p.id";
+            return $this->query($sql)->fetchAll();
+        }
 }

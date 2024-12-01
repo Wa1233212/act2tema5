@@ -6,6 +6,7 @@ use App\Models\RopaModel;
 use App\Models\ElectronicoModel;
 use App\Models\ComidaModel;
 use App\Models\CarritoModel;
+use App\Models\ProductoModel;
 
 // Instanciar el modelo CarritoModel
 $carritoModel = new CarritoModel();
@@ -25,7 +26,36 @@ if (isset($_POST['vaciar_carrito'])) {
         echo "Por favor, inicie sesión para vaciar el carrito.";
     }
 }
+// Crear las instancias de los modelos
+$ropaModel = new RopaModel();
+$electronicoModel = new ElectronicoModel();
+$comidaModel = new ComidaModel();
+
+// Variable para productos encontrados
+$productosPorCategoria = [];
+$categoriaSeleccionada = '';
+
+// Verificar si se ha seleccionado una categoría
+if (isset($_POST['categoria'])) {
+    $categoriaSeleccionada = $_POST['categoria'];
+
+    switch ($categoriaSeleccionada) {
+        case 'ropa':
+            $productosPorCategoria = $ropaModel->getProductos();  // Método para obtener todos los productos de ropa
+            break;
+        case 'electronico':
+            $productosPorCategoria = $electronicoModel->getProductos();  // Método para obtener productos electrónicos
+            break;
+        case 'comida':
+            $productosPorCategoria = $comidaModel->getProductos();  // Método para obtener productos de comida
+            break;
+        default:
+            $productosPorCategoria = [];
+            break;
+    }
+}
 ?>
+
 <style>       
     body {
         font-family: Arial, sans-serif;
@@ -94,6 +124,31 @@ if (isset($_POST['vaciar_carrito'])) {
     }
 </style>
 <main>
+<h3>Selecciona una categoría de productos</h3>
+    <!-- Botones de categorías -->
+    <form action="/home" method="POST">
+        <button type="submit" name="categoria" value="ropa">Ropa</button>
+        <button type="submit" name="categoria" value="electronico">Electrónica</button>
+        <button type="submit" name="categoria" value="comida">Comida</button>
+    </form>
+
+    <!-- Mostrar los productos encontrados -->
+    <?php if (isset($productosPorCategoria)) : ?>
+        <h4>Productos en la categoría: <?= ucfirst($categoriaSeleccionada); ?></h4>
+        <?php if (!empty($productosPorCategoria)) : ?>
+            <ul>
+                <?php foreach ($productosPorCategoria as $producto) : ?>
+                    <li>
+                        <strong>ID:</strong> <?= $producto['id']; ?> - 
+                        <strong>Nombre:</strong> <?= $producto['nombre']; ?> - 
+                        <strong>Precio:</strong> $<?= $producto['precio']; ?>
+                    </li>
+                <?php endforeach; ?>
+            </ul>
+        <?php else : ?>
+            <p>No se encontraron productos en esta categoría.</p>
+        <?php endif; ?>
+    <?php endif; ?>
 <!-- Agregar al Carrito -->
 <form action="/home" method="POST">
     <h3>Agregar Producto al Carrito</h3>

@@ -34,4 +34,5 @@ class ProductoModel extends Model
 
         return "Producto: {$producto['nombre']}, Precio: {$producto['precio']}";
     }
+
 }

@@ -26,4 +26,10 @@ class ElectronicoModel extends ProductoModel
         $sql = "SELECT * FROM {$this->table} WHERE modelo = ?";
         return $this->query($sql, [$modelo], 's')->fetchAll();
     }
+        // Método para obtener todos los productos electrónicos
+        public function getProductos()
+        {
+            $sql = "SELECT p.id, p.nombre, p.precio FROM {$this->table} e INNER JOIN Producto p ON e.id = p.id";
+            return $this->query($sql)->fetchAll();
+        }
 }
