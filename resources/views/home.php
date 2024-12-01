@@ -4,16 +4,17 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Document</title>
+    <title>Tienda - Consultas Interactivas</title>
     <link rel="stylesheet" href="../../public/css/styles.css">
 </head>
 
-
 <body>
     <header>
-        <h1>Tienda - Pruebas de Consultas</h1>
+        <h1>Tienda - Consultas Interactivas</h1>
     </header>
+
     <main>
+        <!-- Descripción de productos -->
         <section>
             <h2>Descripción de Productos</h2>
             <?php
@@ -25,7 +26,6 @@
                 $electronicoModel = new ElectronicoModel();
                 $comidaModel = new ComidaModel();
 
-                // Mostrar descripción de un producto de cada tipo
                 echo "<div class='result-box'>";
                 echo "<strong>Ropa:</strong> " . $ropaModel->mostrarDescripcion(1) . "<br>";
                 echo "<strong>Electrónico:</strong> " . $electronicoModel->mostrarDescripcion(2) . "<br>";
@@ -34,34 +34,80 @@
             ?>
         </section>
 
+        <!-- Búsqueda por categorías -->
         <section>
             <h2>Búsqueda por Categorías</h2>
 
-            <h3>Ropa por Talla</h3>
+            <!-- Buscar ropa por talla -->
+            <h3>Buscar Ropa por Talla</h3>
+            <form action="" method="POST">
+                <label for="talla">Talla:</label>
+                <input type="text" id="talla" name="talla" placeholder="Ejemplo: M" required>
+                <button type="submit" name="buscarRopa">Buscar</button>
+            </form>
+
             <?php
-                // Buscar ropa por talla
-                $ropaPorTalla = $ropaModel->buscarPorTalla('M');
-                echo "<div class='result-box'>";
-                echo "<pre>" . var_export($ropaPorTalla, true) . "</pre>";
-                echo "</div>";
+                if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['buscarRopa'])) {
+                    $talla = $_POST['talla'];
+                    $ropaPorTalla = $ropaModel->buscarPorTalla($talla);
+                    echo "<div class='result-box'>";
+                    if (!empty($ropaPorTalla)) {
+                        foreach ($ropaPorTalla as $ropa) {
+                            echo "Nombre: {$ropa['nombre']}, Precio: {$ropa['precio']}, Talla: {$ropa['talla']}<br>";
+                        }
+                    } else {
+                        echo "No se encontraron prendas con la talla especificada.";
+                    }
+                    echo "</div>";
+                }
             ?>
 
-            <h3>Electrónicos por Modelo</h3>
+            <!-- Buscar electrónicos por modelo -->
+            <h3>Buscar Electrónicos por Modelo</h3>
+            <form action="" method="POST">
+                <label for="modelo">Modelo:</label>
+                <input type="text" id="modelo" name="modelo" placeholder="Ejemplo: Galaxy S21" required>
+                <button type="submit" name="buscarElectronico">Buscar</button>
+            </form>
+
             <?php
-                // Buscar electrónicos por modelo
-                $electronicosPorModelo = $electronicoModel->buscarPorModelo('Galaxy S21');
-                echo "<div class='result-box'>";
-                echo "<pre>" . var_export($electronicosPorModelo, true) . "</pre>";
-                echo "</div>";
+                if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['buscarElectronico'])) {
+                    $modelo = $_POST['modelo'];
+                    $electronicosPorModelo = $electronicoModel->buscarPorModelo($modelo);
+                    echo "<div class='result-box'>";
+                    if (!empty($electronicosPorModelo)) {
+                        foreach ($electronicosPorModelo as $electro) {
+                            echo "Nombre: {$electro['nombre']}, Precio: {$electro['precio']}, Modelo: {$electro['modelo']}<br>";
+                        }
+                    } else {
+                        echo "No se encontraron electrónicos con el modelo especificado.";
+                    }
+                    echo "</div>";
+                }
             ?>
 
-            <h3>Comida por Fecha de Caducidad</h3>
+            <!-- Buscar comida por fecha de caducidad -->
+            <h3>Buscar Comida por Fecha de Caducidad</h3>
+            <form action="" method="POST">
+                <label for="fecha">Fecha (YYYY-MM-DD):</label>
+                <input type="date" id="fecha" name="fecha" required>
+                <button type="submit" name="buscarComida">Buscar</button>
+            </form>
+
             <?php
-                // Buscar comida por fecha de caducidad
-                $comidaCaducidad = $comidaModel->buscarPorFechaCaducidad('2024-12-01');
-                echo "<div class='result-box'>";
-                echo "<pre>" . var_export($comidaCaducidad, true) . "</pre>";
-                echo "</div>";
+                if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['buscarComida'])) {
+                    $fecha = $_POST['fecha'];
+                    $comidaCaducidad = $comidaModel->buscarPorFechaCaducidad($fecha);
+                    echo "<div class='result-box'>";
+                    if (!empty($comidaCaducidad)) {
+                        foreach ($comidaCaducidad as $comida) {
+                            echo "Nombre: {$comida['nombre']}, Precio: {$comida['precio']}, Caducidad: {$comida['caducidad']}<br>";
+                        }
+                    } else {
+                        echo "No se encontraron alimentos con la fecha de caducidad especificada.";
+                    }
+                    echo "</div>";
+                }
             ?>
         </section>
 
