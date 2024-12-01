@@ -17,13 +17,3 @@ if (isset($_POST['agregar_carrito'])) {
         echo "Por favor, inicie sesión para agregar productos al carrito.";
     }
 }
-
-// Vaciar Carrito
-if (isset($_POST['vaciar_carrito'])) {
-    if (isset($_SESSION['usuario_id'])) {
-        $carritoModel->vaciarCarrito($_SESSION['usuario_id']);
-        echo "Carrito vaciado.";
-    } else {
-        echo "Por favor, inicie sesión para vaciar el carrito.";
-    }
-}
