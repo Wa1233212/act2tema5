@@ -8,7 +8,12 @@ class ElectronicoModel extends ProductoModel
 
     public function mostrarDescripcion(int $id): string
     {
-        $electronico = $this->find($id);
+        $sql = "SELECT p.nombre, p.precio, e.modelo 
+                FROM producto p
+                JOIN electronico e ON p.id = e.id
+                WHERE e.id = ?";
+        $electronico = $this->query($sql, [$id], 'i')->fetch();
+
         if (!$electronico) {
             return "Electrónico no encontrado.";
         }
@@ -18,6 +23,7 @@ class ElectronicoModel extends ProductoModel
 
     public function buscarPorModelo(string $modelo)
     {
-        return $this->where('modelo', '=', $modelo)->get();
+        $sql = "SELECT * FROM {$this->table} WHERE modelo = ?";
+        return $this->query($sql, [$modelo], 's')->fetchAll();
     }
 }

@@ -4,7 +4,7 @@ namespace App\Models;
 
 class ProductoModel extends Model
 {
-    protected $table = 'productos';
+    protected $table = 'producto';
 
     public function calcularPrecioConIVA(float $precio): float
     {
@@ -25,7 +25,9 @@ class ProductoModel extends Model
 
     public function mostrarDescripcion(int $id): string
     {
-        $producto = $this->find($id);
+        $sql = "SELECT * FROM {$this->table} WHERE id = ?";
+        $producto = $this->query($sql, [$id], 'i')->fetch();
+
         if (!$producto) {
             return "Producto no encontrado.";
         }

@@ -8,17 +8,15 @@ use PDOException;
 class Model
 {
     protected $db_host = 'localhost';
-    protected $db_user = 'root'; // Debe gestionarse con un archivo .env
+    protected $db_user = 'root';
     protected $db_pass = '';
     protected $db_name = 'tienda_database';
 
     protected $connection;
-
-    protected $query; // Última consulta ejecutada
+    protected $stmt; // Última consulta ejecutada
     protected $select = '*';
     protected $where, $values = [];
     protected $orderBy;
-
     protected $table; // Debe definirse en las clases hijas
 
     public function __construct()
@@ -37,73 +35,56 @@ class Model
         }
     }
 
-    // QUERY BUILDER
-
     public function query($sql, $data = [], $params = null)
     {
-        echo "Consulta: {$sql} <br>"; // solo para pruebas
+        echo "Consulta: {$sql} <br>";
         echo "Data: ";
         var_dump($data);
         echo "Params: ";
         var_dump($params);
         echo "<br>";
 
-        $stmt = $this->connection->prepare($sql);
+        $this->stmt = $this->connection->prepare($sql);
         if ($data) {
-            $this->bindParams($stmt, $data, $params);
+            $this->bindParams($this->stmt, $data, $params);
         }
 
-        $stmt->execute();
-        $this->query = $stmt;
-
-        return $this;
+        $this->stmt->execute();
+        return $this; // Retorna la instancia del modelo
     }
 
     protected function bindParams($stmt, $data, $params)
     {
-        // Si no se pasan tipos, generamos los tipos según los valores en $data
         if ($params === null) {
             $params = '';
             foreach ($data as $value) {
-                if (is_int($value)) {
-                    $params .= 'i'; // Integer
-                } elseif (is_bool($value)) {
-                    $params .= 'b'; // Boolean
-                } elseif (is_null($value)) {
-                    $params .= 'n'; // Null
-                } else {
-                    $params .= 's'; // String
-                }
+                $params .= is_int($value) ? 'i' : 's';
             }
         }
-    
-        // Crear un array con los tipos de parámetros
+
         $paramTypes = str_split($params);
-    
-        // Verificar que la cantidad de tipos coincida con la cantidad de datos
-        if (count($paramTypes) !== count($data)) {
-            die("Error: La cantidad de parámetros no coincide con la cantidad de valores.");
-        }
-    
-        // Vincular los valores a la consulta, asegurándonos de que no haya arrays
         foreach ($data as $index => $value) {
-            // Verificar que el valor no sea un array
-            if (is_array($value)) {
-                die("Error: No se puede pasar un array como valor de parámetro.");
-            }
             $stmt->bindValue($index + 1, $value, $this->getParamType($paramTypes[$index]));
         }
     }
-    
 
     protected function getParamType($type)
     {
-        switch ($type) {
-            case 'i': return PDO::PARAM_INT;
-            case 'd': return PDO::PARAM_STR;
-            case 's': return PDO::PARAM_STR;
-            default: return PDO::PARAM_STR;
-        }
+        return match ($type) {
+            'i' => PDO::PARAM_INT,
+            's' => PDO::PARAM_STR,
+            default => PDO::PARAM_STR,
+        };
+    }
+
+    public function fetch()
+    {
+        return $this->stmt->fetch(PDO::FETCH_ASSOC);
+    }
+
+    public function fetchAll()
+    {
+        return $this->stmt->fetchAll(PDO::FETCH_ASSOC);
     }
 
     public function select(...$columns)
@@ -112,15 +93,9 @@ class Model
         return $this;
     }
 
-    public function all()
-    {
-        $sql = "SELECT {$this->select} FROM {$this->table}";
-        return $this->query($sql)->get();
-    }
-
     public function get()
     {
-        if (empty($this->query)) {
+        if (empty($this->stmt)) {
             $sql = "SELECT {$this->select} FROM {$this->table}";
 
             if ($this->where) {
@@ -134,13 +109,13 @@ class Model
             $this->query($sql, $this->values);
         }
 
-        return $this->query->fetchAll(PDO::FETCH_ASSOC);
+        return $this->fetchAll();
     }
 
     public function find($id)
     {
         $sql = "SELECT * FROM {$this->table} WHERE id = ?";
-        return $this->query($sql, [$id], 'i')->get();
+        return $this->query($sql, [$id], 'i')->fetch();
     }
 
     public function where($column, $operator, $value = null, $chainType = 'AND')
@@ -150,7 +125,9 @@ class Model
             $operator = '=';
         }
 
-        $this->where = $this->where ? "{$this->where} {$chainType} {$column} {$operator} ?" : "{$column} {$operator} ?";
+        $this->where = $this->where
+            ? "{$this->where} {$chainType} {$column} {$operator} ?"
+            : "{$column} {$operator} ?";
         $this->values[] = $value;
 
         return $this;
@@ -158,7 +135,9 @@ class Model
 
     public function orderBy($column, $order = 'ASC')
     {
-        $this->orderBy = $this->orderBy ? "{$this->orderBy}, {$column} {$order}" : "{$column} {$order}";
+        $this->orderBy = $this->orderBy
+            ? "{$this->orderBy}, {$column} {$order}"
+            : "{$column} {$order}";
         return $this;
     }
 
@@ -176,27 +155,14 @@ class Model
 
     public function update($id, $data)
     {
-        // Preparar las columnas a actualizar
         $fields = array_map(fn($key) => "{$key} = ?", array_keys($data));
         $fieldsList = implode(', ', $fields);
-    
-        // Crear la consulta SQL
+
         $sql = "UPDATE {$this->table} SET {$fieldsList} WHERE id = ?";
-    
-        // Combinar los valores de los datos y el ID, asegurando que el ID va al final
-        $params = array_merge(array_values($data), [$id]);
-    
-        // Imprimir los valores de los parámetros antes de la consulta para depurar
-        echo "Params before query: ";
-        var_dump($params); // Verificar que los valores sean correctos
-        echo "SQL: " . $sql . "<br>";
-    
-        // Ejecutar la consulta con los parámetros correctamente ordenados
-        $this->query($sql, $params);
-    
+        $this->query($sql, array_merge(array_values($data), [$id]));
+
         return $this;
     }
-    
 
     public function delete($id)
     {
@@ -204,14 +170,5 @@ class Model
         $this->query($sql, [$id], 'i');
 
         return $this;
-    }
-
-    public function consultaPrueba()
-    {
-        return [
-            ['id' => 1, 'nombre' => 'Nombre1', 'apellido' => 'Apellido1'],
-            ['id' => 2, 'nombre' => 'Nombre2', 'apellido' => 'Apellido2'],
-            ['id' => 3, 'nombre' => 'Nombre3', 'apellido' => 'Apellido3']
-        ];
     }
 }

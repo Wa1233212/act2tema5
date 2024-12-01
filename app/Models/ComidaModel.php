@@ -8,7 +8,12 @@ class ComidaModel extends ProductoModel
 
     public function mostrarDescripcion(int $id): string
     {
-        $comida = $this->find($id);
+        $sql = "SELECT p.nombre, p.precio, c.caducidad 
+                FROM producto p
+                JOIN comida c ON p.id = c.id
+                WHERE c.id = ?";
+        $comida = $this->query($sql, [$id], 'i')->fetch();
+
         if (!$comida) {
             return "Comida no encontrada.";
         }
@@ -19,6 +24,7 @@ class ComidaModel extends ProductoModel
 
     public function buscarPorFechaCaducidad(string $fecha)
     {
-        return $this->where('caducidad', '>=', $fecha)->orderBy('caducidad')->get();
+        $sql = "SELECT * FROM {$this->table} WHERE caducidad >= ? ORDER BY caducidad";
+        return $this->query($sql, [$fecha], 's')->fetchAll();
     }
 }
