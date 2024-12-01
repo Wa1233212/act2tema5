@@ -1,5 +1,7 @@
 <?php
 
+
+
 namespace App\Models;
 
 use PDO;
@@ -77,10 +79,14 @@ class Model
         };
     }
 
-    public function fetch()
+    public function fetch($mode = PDO::FETCH_ASSOC)
     {
-        return $this->stmt->fetch(PDO::FETCH_ASSOC);
+        if (!$this->stmt) {
+            throw new \Exception("No se ha ejecutado ninguna consulta para obtener resultados.");
+        }
+        return $this->stmt->fetch($mode);
     }
+    
 
     public function fetchAll()
     {
@@ -164,11 +170,17 @@ class Model
         return $this;
     }
 
-    public function delete($id)
+    public function delete($conditions = null, $values = [], $params = null)
     {
-        $sql = "DELETE FROM {$this->table} WHERE id = ?";
-        $this->query($sql, [$id], 'i');
-
+        $sql = "DELETE FROM {$this->table}";
+        
+        if ($conditions) {
+            $sql .= " WHERE {$conditions}";
+        }
+    
+        $this->query($sql, $values, $params);
+    
         return $this;
     }
+    
 }
