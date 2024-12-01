@@ -21,4 +21,13 @@ class RopaModel extends Model
 
         return "Ropa: {$ropa['nombre']}, Precio: {$ropa['precio']}, Talla: {$ropa['talla']}";
     }
+    public function buscarPorTalla(string $talla)
+    {
+        $sql = "SELECT p.nombre, p.precio, r.talla 
+                FROM producto p
+                JOIN ropa r ON p.id = r.id
+                WHERE r.talla = ?";
+
+        return $this->query($sql, [$talla], 's')->fetchAll();
+    }
 }
