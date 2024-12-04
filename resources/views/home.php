@@ -150,7 +150,7 @@ if (isset($_POST['categoria'])) {
         <?php endif; ?>
     <?php endif; ?>
 <!-- Agregar al Carrito -->
-<form action="/home" method="POST">
+<form action="/carrito" method="POST">
     <h3>Agregar Producto al Carrito</h3>
     <label for="id_producto">ID del Producto:</label>
     <input type="text" name="id_producto" required>

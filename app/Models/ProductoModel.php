@@ -23,7 +23,7 @@ class ProductoModel extends Model
         return $this->update($id, ['precio' => $nuevoPrecio]) !== false;
     }
 
-    public function mostrarDescripcion(int $id): string
+    public function mostrarDescripcion(string $id): string
     {
         $sql = "SELECT * FROM {$this->table} WHERE id = ?";
         $producto = $this->query($sql, [$id], 'i')->fetch();

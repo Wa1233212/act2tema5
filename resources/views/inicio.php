@@ -93,9 +93,9 @@
                 $comidaModel = new ComidaModel();
 
                 echo "<div class='result-box'>";
-                echo "<strong>Ropa:</strong> " . $ropaModel->mostrarDescripcion(1) . "<br>";
-                echo "<strong>Electrónico:</strong> " . $electronicoModel->mostrarDescripcion(2) . "<br>";
-                echo "<strong>Comida:</strong> " . $comidaModel->mostrarDescripcion(3) . "<br>";
+                echo "<strong>Ropa:</strong> " . $ropaModel->mostrarDescripcion('P001') . "<br>";
+                echo "<strong>Electrónico:</strong> " . $electronicoModel->mostrarDescripcion('P004') . "<br>";
+                echo "<strong>Comida:</strong> " . $comidaModel->mostrarDescripcion('P005') . "<br>";
                 echo "</div>";
             ?>
         </section>

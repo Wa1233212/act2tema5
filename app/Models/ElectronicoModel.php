@@ -6,7 +6,7 @@ class ElectronicoModel extends ProductoModel
 {
     protected $table = 'electronico';
 
-    public function mostrarDescripcion(int $id): string
+    public function mostrarDescripcion(string $id): string
     {
         $sql = "SELECT p.nombre, p.precio, e.modelo 
                 FROM producto p

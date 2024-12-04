@@ -6,7 +6,7 @@ class RopaModel extends Model
 {
     protected $table = 'ropa';
 
-    public function mostrarDescripcion(int $id): string
+    public function mostrarDescripcion(string $id): string
     {
         $sql = "SELECT p.nombre, p.precio, r.talla 
                 FROM Producto p

@@ -39,12 +39,6 @@ class Model
 
     public function query($sql, $data = [], $params = null)
     {
-        echo "Consulta: {$sql} <br>";
-        echo "Data: ";
-        var_dump($data);
-        echo "Params: ";
-        var_dump($params);
-        echo "<br>";
 
         $this->stmt = $this->connection->prepare($sql);
         if ($data) {

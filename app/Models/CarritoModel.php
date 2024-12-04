@@ -4,7 +4,7 @@ namespace App\Models;
 
 class CarritoModel extends Model
 {
-    protected $table = 'Carrito';
+    protected $table = 'carrito';
 
     // Método para obtener los productos del carrito de un usuario con el precio
     public function obtenerCarritoPorUsuario($usuarioId)
@@ -23,4 +23,26 @@ class CarritoModel extends Model
             $sql = "DELETE FROM {$this->table} WHERE id_usuario = ?";
             $this->query($sql, [$usuarioId], 'i');
         }
+
+        public function agregarAlCarrito($idUsuario, $idProducto, $cantidad)
+        {
+            // Verificar si el producto ya existe en el carrito
+            $productoExistente = $this->where('id_usuario', '=', $idUsuario)
+                                      ->where('id_producto', '=', $idProducto)
+                                      ->get();
+    
+            if (count($productoExistente) > 0) {
+                // Actualizar cantidad si ya existe
+                $this->update($productoExistente[0]['id'], [
+                    'cantidad' => $productoExistente[0]['cantidad'] + $cantidad
+                ]);
+            } else {
+                // Agregar nuevo producto al carrito
+                $this->create([
+                    'id_usuario' => $idUsuario,
+                    'id_producto' => $idProducto,
+                    'cantidad' => $cantidad
+                ]);  
+            }
+        }     
 }
